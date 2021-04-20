@@ -1,5 +1,20 @@
 # Simple Video Service for H31, PixC4-Pi
 
+This is a very simple video streaming service built for the PixC4-Pi. It a singled MIPI or usb camera input.
+
+Todo add the following into the provision script  
+START TODO  
+The ELP Cameras we commonly use are not UVC compatible, so to change the H.264 bitrate will need the ELP config tool.    
+```
+git clone https://github.com/uvdl/ELP_H264_UVC
+cd ELP_H264_UVC
+git checkout feature/UvdlFixes
+cd Linux_UVC_TestAP
+make
+```  
+you can then run the tool to change the bitrate, e.g. 2Mbps, making sure to change *camera* below with the video name, typically video0  
+`./H264_UVC_TestAP /dev/*camera* --xuset-br 2000000`  
+END TODO  
 
 ## Dependencies
 
