@@ -2,6 +2,9 @@
 
 This is a very simple video streaming service built for the PixC4-Pi. It supports a single MIPI-CSI or usb camera input. No video switching etc. is used.
 
+## TODO: 
+Tested with MIPI-CIS via RPi IO board. Need to test with an ELP USB Camera.
+
 ## Dependencies
 
 * `gstreamer1.0-tools` 
