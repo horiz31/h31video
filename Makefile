@@ -44,12 +44,13 @@ enable:
 	@( for s in $(SERVICES) ; do $(SUDO) systemctl enable $${s%.*} ; done ; true )
 
 install: dependencies
-	@for s in $(LOCAL_SCRIPTS) ; do $(SUDO) install -Dm755 $${s} $(LOCAL)/bin/$${s} ; done    
+	@for s in $(LOCAL_SCRIPTS) ; do $(SUDO) install -Dm755 $${s} $(LOCAL)/bin/$${s} ; done
+	@./ensure-elp-driver.sh	
 	$(MAKE) --no-print-directory -B $(SYSCFG)/video.conf $(DRY_RUN)
 	@$(MAKE) --no-print-directory enable
-	
-provision:	
-	$(MAKE) --no-print-directory -B $(SYSCFG)/video.conf $(DRY_RUN)	
+
+provision:
+	$(MAKE) --no-print-directory -B $(SYSCFG)/video.conf $(DRY_RUN)
 	$(SUDO) systemctl restart video
 
 see:
