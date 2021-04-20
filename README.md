@@ -1,6 +1,6 @@
 # Simple Video Service for H31, PixC4-Pi
 
-This is a very simple video streaming service built for the PixC4-Pi. It a singled MIPI or usb camera input.
+This is a very simple video streaming service built for the PixC4-Pi. It supports a single MIPI or usb camera input. No video switching etc. is used.
 
 Todo add the following into the provision script  
 START TODO  
