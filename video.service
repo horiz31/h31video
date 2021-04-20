@@ -1,0 +1,17 @@
+[Unit]
+Description=Video Service
+After=network.target
+RequiresMountsFor=/etc /usr
+
+[Service]
+ExecStart=/usr/local/bin/start-video.sh
+EnvironmentFile=/etc/systemd/video.conf
+WorkingDirectory=/home/pi
+StandardOutput=journal
+StandardError=journal
+Restart=always
+User=pi
+
+[Install]
+WantedBy=multi-user.target
+
