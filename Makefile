@@ -26,7 +26,10 @@ default:
 	@echo ""
 
 $(SYSCFG)/video.conf:
-	PLATFORM=$(PLATFORM) ./provision.sh $@ $(DRY_RUN)
+	@echo ""
+	@echo "Please answer the questions below to provision the video settings:"
+	@echo ""
+	@./provision.sh $@ $(DRY_RUN)
 
 clean:
 	@if [ -d src ] ; then cd src && make clean ; fi
@@ -46,7 +49,7 @@ enable:
 install: dependencies
 	@for s in $(LOCAL_SCRIPTS) ; do $(SUDO) install -Dm755 $${s} $(LOCAL)/bin/$${s} ; done
 	@./ensure-elp-driver.sh	
-	$(MAKE) --no-print-directory -B $(SYSCFG)/video.conf $(DRY_RUN)
+	@$(MAKE) --no-print-directory -B $(SYSCFG)/video.conf $(DRY_RUN)
 	@$(MAKE) --no-print-directory enable
 
 provision:
