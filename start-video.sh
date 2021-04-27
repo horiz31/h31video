@@ -25,8 +25,9 @@ elif [ "${SOURCE}" == "H.264" ] ; then
 	        ${SUDO} ${ELP_H264_UVC}/Linux_UVC_TestAP/H264_UVC_TestAP /dev/camera1 --xuset-br ${BITRATE}        	    
         fi        
         gst-launch-1.0 v4l2src device=/dev/camera1 ! rtph264pay config-interval=1 pt=96 ! udpsink host=${HOST} port=${PORT}
-#
-#todo, handle raw
+elif [ "${SOURCE}" == "RAW" ] ; then 
+       # raw really only works with very specific width/height, e.g. 800x600 and 15fps for the ELP cam
+       gst-launch-1.0 v4l2src device=/dev/camera1 io-mode=mmap ! "video/x-raw,format=(string)YUY2,width=(int)800,height=(int)600,framerate=(fraction)15/1" ! videoconvert ! "video/x-raw,format=(string)I420,width=(int)800,height=(int)600,framerate=(fraction)15/1" ! omxh264enc ! rtph264pay config-interval=10 pt=96 ! udpsink host=${HOST} port=${PORT} ${extra}   
 fi
         
 
