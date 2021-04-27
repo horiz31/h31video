@@ -6,12 +6,13 @@ SUDO := $(shell test $${EUID} -ne 0 && echo "sudo")
 .EXPORT_ALL_VARIABLES:
 
 LOCAL=/usr/local
-LOCAL_SCRIPTS=start-video.sh
+LOCAL_SCRIPTS=start-video.sh start-red5.sh
 CONFIG ?= /var/local
 LIBSYSTEMD=/lib/systemd/system
-PKGDEPS ?= gstreamer1.0-tools
-SERVICES=video.service
+PKGDEPS ?= gstreamer1.0-tools build-essential
+SERVICES=video.service red5_streaming.service
 SYSCFG=/etc/systemd
+DRY_RUN=false
 
 .PHONY = clean dependencies enable install provision see uninstall 
 
@@ -29,7 +30,7 @@ $(SYSCFG)/video.conf:
 	@echo ""
 	@echo "Please answer the questions below to provision the video settings:"
 	@echo ""
-	@./provision.sh $@ $(DRY_RUN)
+	@./provision.sh $@
 
 clean:
 	@if [ -d src ] ; then cd src && make clean ; fi
@@ -49,11 +50,12 @@ enable:
 install: dependencies
 	@for s in $(LOCAL_SCRIPTS) ; do $(SUDO) install -Dm755 $${s} $(LOCAL)/bin/$${s} ; done
 	@./ensure-elp-driver.sh	
-	@$(MAKE) --no-print-directory -B $(SYSCFG)/video.conf $(DRY_RUN)
+	@./ensure-red5.sh	
+	@$(MAKE) --no-print-directory -B $(SYSCFG)/video.conf
 	@$(MAKE) --no-print-directory enable
 
 provision:
-	$(MAKE) --no-print-directory -B $(SYSCFG)/video.conf $(DRY_RUN)
+	$(MAKE) --no-print-directory -B $(SYSCFG)/video.conf
 	$(SUDO) systemctl restart video
 
 see:
