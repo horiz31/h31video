@@ -130,7 +130,7 @@ case "$(basename $CONF)" in
 				done
 				echo -e "\n"
 			fi
-			DEVICE=$(interactive "$DEVICE" "Video endpoint, e.g. /dev/video0")	
+			DEVICE=$(interactive "$DEVICE" "Video endpoint, e.g. /dev/video0")				
 			FPS=$(interactive "$FPS" "FPS, frames per second")				
 			WIDTH=$(interactive "$WIDTH" "WIDTH, video width in pixels")	
 			HEIGHT=$(interactive "$HEIGHT" "HEIGHT, video height in pixels")	
@@ -160,6 +160,36 @@ case "$(basename $CONF)" in
 			RED5_BITRATE=$(interactive "$RED5_BITRATE" "RED5 BITRATE, video bitrate in kbps")	
 			
 		fi	
+
+		#make udev rules
+		touch /tmp/$$.rule	
+
+		ok=true
+		declare -A config
+		udevadm info -a -n ${DEVICE} | grep ATTR > /tmp/camera1.$$
+	    for kw in devpath idProduct idVendor index ; do
+			config[$kw]=$(grep $kw /tmp/camera1.$$ | head -1 | cut -f2 -d\")
+			if [ -z "${config[$kw]}" ] ; then ok=false ; fi
+	    done
+		if $ok ; then
+			echo "SUBSYSTEM==\"video4linux\", ATTRS{idVendor}==\"${config[idVendor]}\", ATTRS{idProduct}==\"${config[idProduct]}\", ATTRS{devpath}==\"${config[devpath]}\", ATTR{index}==\"${config[index]}\", SYMLINK+=\"camera1\"" >> /tmp/$$.rule			
+		else
+			echo "*** ${DEVICE}  not configured for camera1 ***"
+		fi
+
+		udevadm info -a -n ${RED5_DEVICE} | grep ATTR > /tmp/red51.$$
+	    for kw in devpath idProduct idVendor index ; do
+			config[$kw]=$(grep $kw /tmp/red51.$$ | head -1 | cut -f2 -d\")
+			if [ -z "${config[$kw]}" ] ; then ok=false ; fi
+	    done
+		if $ok ; then
+			echo "SUBSYSTEM==\"video4linux\", ATTRS{idVendor}==\"${config[idVendor]}\", ATTRS{idProduct}==\"${config[idProduct]}\", ATTRS{devpath}==\"${config[devpath]}\", ATTR{index}==\"${config[index]}\", SYMLINK+=\"red51\"" >> /tmp/$$.rule			
+		else
+			echo "*** ${RED5_DEVICE}  not configured for red51 ***"
+		fi
+	
+
+		#write config file
 		echo "[Service]" > /tmp/$$.env && \
 		echo "SOURCE=${SOURCE}" >> /tmp/$$.env && \
 		echo "DEVICE=${DEVICE}" >> /tmp/$$.env && \
@@ -185,9 +215,14 @@ if $DRY_RUN ; then
 	echo $CONF && cat /tmp/$$.env && echo ""
 elif [[ $(basename $CONF) == *.sh ]] ; then
 	$SUDO install -Dm755 /tmp/$$.env $CONF
+	set -x
+	$SUDO install -Dm644 /tmp/$$.rule ${UDEV_RULESD}/83-webcam.rules
+	$SUDO udevadm control --reload-rules && $SUDO udevadm trigger
+	set +x
 else
 	$SUDO install -Dm644 /tmp/$$.env $CONF
 fi
 rm /tmp/$$.env
+rm /tmp/$$.rule
 
 
