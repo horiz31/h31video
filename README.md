@@ -1,12 +1,12 @@
 # Simple Video Service for H31, PixC4-Pi
 
-## TODO: 
-I need to setup symbolic links for the cameras selecting during provisioning so they will be guranteed to persist across boots.
-## END TODO
-
 This is a simple video streaming service built for the PixC4-Pi with plans to evolve into support for the PixcC4-Jetson. It supports a single MIPI-CSI or usb camera input. No video switching etc. is used.
 
 It also supports starting a red5 streaming service. Note that the red5 service requires an H.264 camera input. As such, if you set up the LOS stream using H.264, you cannot also use that video source for the red5 service. Generally the best option is to use MJPG encoding for the LOS stream with one of the ELP cameras which has MJPG, RAW and H.264 endpoints. MJPG is slightly more latent than H.264 or RAW, but is significantly higher quality than RAW from these cameras because they are limited in frame size. Also note that pulling MJPG and encoding to 264 is somewhat computationally expensive.
+
+When you run this two symbolic links are set up via udev rules
+* `/dev/camera1` This is the endpoint used for the LOS network
+* `/dev/red51` This is the endpoing used for the red5 streaming
 
 ## Dependencies
 
@@ -42,6 +42,13 @@ make -C $HOME/video_simple_pi provision
 
 This will enter into an interactive session to help you setup your video encoding settings, host endpoint etc.
 
+## Red5 Notes
+
+The serial number used for now is the Rpi cpu serial number, obtained by `cat /proc/cpuinfo | grep Serial | head -1 | cut -f2 -d':' | xargs`. I need to look at how Bogdan was getting serial numbers as there is likely a python script for this already in camera-streamer. Ultimately will have to make sure this is unified with MAVNet.  
+
+The Org is hard coded to H31 in the `start-red5.sh` script  
+
+The red5 service is started with these params `red5_streamer.bin ${RED5_HOST} ${STREAMNAME} ${DEVICE} ${RED5_HEIGHT} ${RED5_WIDTH} ${RED5_FPS} ${RED5_BITRATE}`  
 
 ## Files
 
