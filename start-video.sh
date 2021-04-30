@@ -16,8 +16,9 @@ fi
 if [ "${SOURCE}" == "MIPI" ] ; then
         BITRATE=$(($BITRATE * 1000))         
         raspivid --nopreview -fps ${FPS} -h ${HEIGHT} -w ${WIDTH} -vf -hf -n -t 0 -b ${BITRATE} -o - | gst-launch-1.0 -v fdsrc ! h264parse ! rtph264pay config-interval=1 pt=96 ! udpsink host=${HOST} port=${PORT} ${extra}        
-elif [ "${SOURCE}" == "MJPG" ] ; then            
-        gst-launch-1.0 v4l2src device=/dev/camera1 io-mode=mmap ! "image/jpeg,width=(int)${WIDTH},height=(int)${HEIGHT},framerate=(fraction)${FPS}/1" ! jpegdec ! "video/x-raw,format=(string)I420,width=(int)${WIDTH},height=(int)${HEIGHT},framerate=(fraction)${FPS}/1" ! x264enc bitrate=${BITRATE} speed-preset=veryfast key-int-max=30 tune=zerolatency sliced-threads=true ! "video/x-h264,stream-format=(string)byte-stream,width=(int)${WIDTH},height=(int)${HEIGHT},framerate=(fraction)${FPS}/1" ! h264parse ! rtph264pay config-interval=10 pt=96 ! udpsink host=${HOST} port=${PORT} ${extra}      
+elif [ "${SOURCE}" == "MJPG" ] ; then       
+        BITRATE=$(($BITRATE * 1000))          
+        gst-launch-1.0 v4l2src device=/dev/camera1 io-mode=mmap ! "image/jpeg,width=(int)${WIDTH},height=(int)${HEIGHT},framerate=(fraction)${FPS}/1" ! jpegdec ! "video/x-raw,format=(string)I420,width=(int)${WIDTH},height=(int)${HEIGHT},framerate=(fraction)${FPS}/1" ! omxh264enc control-rate=variable target-bitrate=${BITRATE} ! "video/x-h264,stream-format=(string)byte-stream,width=(int)${WIDTH},height=(int)${HEIGHT},framerate=(fraction)${FPS}/1" ! h264parse ! rtph264pay config-interval=10 pt=96 ! udpsink host=${HOST} port=${PORT} ${extra}      
 elif [ "${SOURCE}" == "H.264" ] ; then         
         # first set bitrate, note it is saved in kbps
         BITRATE=$((${BITRATE} * 1000))      
@@ -26,8 +27,9 @@ elif [ "${SOURCE}" == "H.264" ] ; then
         fi        
         gst-launch-1.0 v4l2src device=/dev/camera1 ! rtph264pay config-interval=1 pt=96 ! udpsink host=${HOST} port=${PORT}
 elif [ "${SOURCE}" == "RAW" ] ; then 
-       # raw really only works with very specific width/height, e.g. 800x600 and 15fps for the ELP cam
-       gst-launch-1.0 v4l2src device=/dev/camera1 io-mode=mmap ! "video/x-raw,format=(string)YUY2,width=(int)800,height=(int)600,framerate=(fraction)15/1" ! videoconvert ! "video/x-raw,format=(string)I420,width=(int)800,height=(int)600,framerate=(fraction)15/1" ! omxh264enc ! rtph264pay config-interval=10 pt=96 ! udpsink host=${HOST} port=${PORT} ${extra}   
+       # raw really only works with very specific width/height, e.g. 640x360 and 15fps for the ELP cam
+       # I am hardcoding the scaling to 1280x720 because it is so picky this is pretty much all that works, would be complicated to let user input anything
+       gst-launch-1.0 v4l2src device=/dev/camera1 io-mode=0 ! "video/x-raw,format=(string)YUY2,width=(int)640,height=(int)360,framerate=(fraction)15/1" ! videorate max-rate=15 skip-to-first=true ! videoconvert ! videoscale method=bilinear name=scale ! "video/x-raw,format=(string)I420,width=(int)1280,height=(int)720,framerate=(fraction)15/1" ! omxh264enc control-rate=1 target-bitrate=2000000 ! rtph264pay config-interval=10 pt=96 ! udpsink host=${HOST} port=${PORT} ${extra}       
 fi
         
 
