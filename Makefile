@@ -6,11 +6,11 @@ SUDO := $(shell test $${EUID} -ne 0 && echo "sudo")
 .EXPORT_ALL_VARIABLES:
 
 LOCAL=/usr/local
-LOCAL_SCRIPTS=start-video.sh start-red5.sh
+LOCAL_SCRIPTS=start-video.sh
 CONFIG ?= /var/local
 LIBSYSTEMD=/lib/systemd/system
 PKGDEPS ?= gstreamer1.0-tools build-essential
-SERVICES=video.service red5_streaming.service
+SERVICES=video.service
 SYSCFG=/etc/systemd
 DRY_RUN=false
 
@@ -49,8 +49,7 @@ enable:
 
 install: dependencies
 	@for s in $(LOCAL_SCRIPTS) ; do $(SUDO) install -Dm755 $${s} $(LOCAL)/bin/$${s} ; done
-	@./ensure-elp-driver.sh	
-	@./ensure-red5.sh	
+	@./ensure-elp-driver.sh		
 	@$(MAKE) --no-print-directory -B $(SYSCFG)/video.conf
 	@$(MAKE) --no-print-directory enable
 
