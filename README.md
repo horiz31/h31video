@@ -47,6 +47,23 @@ make -C $HOME/video_simple_pi provision
 
 This will enter into an interactive session to help you setup your video encoding settings, host endpoint etc.
 
+## Running
+
+The install above will create a service and enable it (/usr/systemd/system/video.service). It will start automatically after a reboot.  
+
+To stop it manually
+```
+sudo systemctl stop video
+```
+To start it manually
+```
+sudo systemctl start video
+```
+To view output logs while it is running  
+```
+sudo journalctl -fu video
+```
+
 ## Video Server Notes
 
 The serial number used for now is the Rpi cpu serial number, obtained by `cat /proc/cpuinfo | grep Serial | head -1 | cut -f2 -d':' | xargs`. I need to look at how Bogdan was getting serial numbers as there is likely a python script for this already in camera-streamer. Ultimately will have to make sure this is unified with MAVNet.  
