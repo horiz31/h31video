@@ -4,15 +4,14 @@ After=network.target
 RequiresMountsFor=/etc /usr
 
 [Service]
+Type=simple
 ExecStart=/usr/local/bin/start-video.sh
 EnvironmentFile=/etc/systemd/video.conf
-WorkingDirectory=/home/pi
+RuntimeDirectory=video-stream
 StandardOutput=journal
 StandardError=journal
 Restart=always
 RestartSec=5
-User=pi
 
 [Install]
 WantedBy=multi-user.target
-
