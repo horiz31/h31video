@@ -86,7 +86,7 @@ These platforms are supported/tested:
 
  * Raspberry PI
    - [x] [Raspbian GNU/Linux 10 (buster)](https://www.raspberrypi.org/downloads/raspbian/)
-  * NVIDIA Jetson Nano
+ * NVIDIA Jetson Nano
    - [x] [NVIDIA L4T 32.5.1 (Jetpack 4.5.1)](https://developer.nvidia.com/embedded/jetpack)
 
 
