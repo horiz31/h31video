@@ -10,9 +10,9 @@
 SUDO=$(test ${EUID} -ne 0 && which sudo)
 LOCAL=/usr/local
 ELP_H264_UVC=${LOCAL}/src/ELP_H264_UVC
-PLATFORM=$(python3 serial_number.py | cut -c1-4)
+#PLATFORM=$(python3 serial_number.py | cut -c1-4)
 
-echo "Start Video Script for ${PLATFORM}"
+echo "Start Video Script for $PLATFORM"
 
 # if host is multicast, then append extra
 if [[ "$LOS_HOST" =~ ^224.* ]]; then
@@ -31,6 +31,22 @@ else
     encoder_bitrate="bitrate"
 fi
 
+#if the server host is not set, don't try rtmp sink
+extra_videoserver=""
+if [ -z "${VIDEOSERVER_HOST}" ] ; then    
+    echo "No video server specified, not doing RTMP"
+else
+    #check connectivity before even trying to do this, if we can't hit the video server at startup, then we are SOL
+    if ping -q -c 1 -W 1 ${VIDEOSERVER_HOST} >/dev/null; then
+        echo "Ping ok to ${VIDEOSERVER_HOST}..."
+        extra_videoserver="t. ! queue max-size-buffers=0 max-size-bytes=0 max-size-time=134000000 min-threshold-buffers=1 leaky=upstream ! \
+h264parse ! flvmux streamable=true ! rtmpsink location=rtmp://${VIDEOSERVER_HOST}:${VIDEOSERVER_PORT}/live/${VIDEOSERVER_ORG}/${VIDEOSERVER_STREAMNAME}"
+    else
+        echo "Not able to ping the video server, not going to try RTMP"
+    fi
+    
+fi
+
 #Scale the bitrate from kbps to bps
 HIGHQUALITY_BITRATE=$(($HIGHQUALITY_BITRATE * 1000)) 
 LOWQUALITY_BITRATE=$(($LOWQUALITY_BITRATE * 1000)) 
@@ -39,12 +55,12 @@ LOWQUALITY_BITRATE=$(($LOWQUALITY_BITRATE * 1000))
 if [ -d "${ELP_H264_UVC}" ] ; then
 	        ${SUDO} ${ELP_H264_UVC}/Linux_UVC_TestAP/H264_UVC_TestAP /dev/stream1 --xuset-br ${HIGHQUALITY_BITRATE}        	    
 fi   
-gst-launch-1.0 v4l2src device=/dev/camera1 io-mode=0 ! "video/x-raw,format=(string)YUY2,width=(int)640,height=(int)360,framerate=(fraction)15/1" ! \
+echo "Running pipeline 1" && gst-launch-1.0 v4l2src device=/dev/camera1 io-mode=0 ! "video/x-raw,format=(string)YUY2,width=(int)640,height=(int)360,framerate=(fraction)15/1" ! \
 videorate max-rate=15 skip-to-first=true ! videoconvert ! videoscale method=bilinear name=scale ! "video/x-raw,format=(string)I420,width=(int)1280,height=(int)720,framerate=(fraction)15/1" ! \
-omxh264enc control-rate=1 ${encoder_bitrate}=${LOWQUALITY_BITRATE} ! tee name=t t. ! queue max-size-buffers=0 max-size-bytes=0 max-size-time=134000000 min-threshold-buffers=1 leaky=upstream ! \
-h264parse ! flvmux streamable=true ! rtmpsink location=rtmp://${VIDEOSERVER_HOST}:${VIDEOSERVER_PORT}/live/${VIDEOSERVER_ORG}/${VIDEOSERVER_STREAMNAME} t. ! \
-queue max-size-buffers=0 max-size-bytes=0 max-size-time=134000000 min-threshold-buffers=1 leaky=upstream ! mpegtsmux ! rtpmp2tpay ! udpsink sync=false host=${ATAK_HOST} port=${ATAK_PORT} ${extra_atak} \
-v4l2src device=/dev/stream1 io-mode=mmap ! "video/x-h264,width=${HIGHQUALITY_WIDTH},height=${HIGHQUALITY_HEIGHT},framerate=(fraction)${HIGHQUALITY_FPS}/1" ! h264parse ! tee name=t1 t1. ! \
+omxh264enc control-rate=1 ${encoder_bitrate}=${LOWQUALITY_BITRATE} ! tee name=t ${extra_videoserver} t. ! \
+queue max-size-buffers=0 max-size-bytes=0 max-size-time=134000000 min-threshold-buffers=1 leaky=upstream ! mpegtsmux ! rtpmp2tpay ! udpsink sync=false host=${ATAK_HOST} port=${ATAK_PORT} ${extra_atak} &
+
+echo "Running pipeline 2" && gst-launch-1.0 v4l2src device=/dev/stream1 io-mode=mmap ! "video/x-h264,width=${HIGHQUALITY_WIDTH},height=${HIGHQUALITY_HEIGHT},framerate=(fraction)${HIGHQUALITY_FPS}/1" ! h264parse ! tee name=t1 t1. ! \
 queue max-size-buffers=0 max-size-bytes=0 max-size-time=134000000 min-threshold-buffers=1 leaky=upstream ! queue max-size-buffers=0 max-size-bytes=0 max-size-time=134000000 min-threshold-buffers=1 leaky=upstream ! \
 rtph264pay config-interval=1 pt=96 ! udpsink sync=false host=${LOS_HOST} port=${LOS_PORT} ${extra_los} t1. ! queue max-size-buffers=0 max-size-bytes=0 max-size-time=134000000 min-threshold-buffers=1 leaky=upstream ! \
 rtph264pay config-interval=1 pt=96 ! udpsink sync=false host=${MAVPN_HOST} port=${MAVPN_PORT} ${extra_mavpn}

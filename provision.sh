@@ -3,6 +3,7 @@
 SUDO=$(test ${EUID} -ne 0 && which sudo)
 SYSCFG=/etc/systemd
 UDEV_RULESD=/etc/udev/rules.d
+PLATFORM=$(python3 serial_number.py | cut -c1-4)
 CONF=$1
 shift
 DEFAULTS=false
@@ -121,10 +122,13 @@ case "$(basename $CONF)" in
 			ATAK_PORT=$(interactive "$ATAK_PORT" "ATAK_PORT, Port for the ATAK video")	
 			ATAK_IFACE=$(interactive "$ATAK_IFACE" "ATAK_IFACE, Multicast interface for the ATAK video, if applicable")	
 			echo -e "\n--- Video Distribution Server Config ---"
-			VIDEOSERVER_HOST=$(interactive "$VIDEOSERVER_HOST" "VIDEOSERVER_HOST, IPv4 for the Horizon31 video server")
+			VIDEOSERVER_HOST=$(interactive "$VIDEOSERVER_HOST" "VIDEOSERVER_HOST, IPv4 for the Horizon31 video server, type "none" if not using")
 			VIDEOSERVER_PORT=$(interactive "$VIDEOSERVER_PORT" "VIDEOSERVER_PORT, Port for the Horizon31 video server")
 			VIDEOSERVER_ORG=$(interactive "$VIDEOSERVER_ORG" "VIDEOSERVER_ORG, Organizational id for this device (used for organizing video on the server)")
 			VIDEOSERVER_STREAMNAME=$(interactive "$VIDEOSERVER_STREAMNAME" "VIDEOSERVER_STREAMNAME, Stream name for this device, typically the device serial number")
+  
+			if [[ "$VIDEOSERVER_HOST" == "none" ]] ; then VIDEOSERVER_HOST="" ; fi
+
 									
 		fi	
 
@@ -178,7 +182,8 @@ case "$(basename $CONF)" in
 		echo "VIDEOSERVER_HOST=${VIDEOSERVER_HOST}" >> /tmp/$$.env && \
 		echo "VIDEOSERVER_PORT=${VIDEOSERVER_PORT}" >> /tmp/$$.env && \
 		echo "VIDEOSERVER_ORG=${VIDEOSERVER_ORG}" >> /tmp/$$.env && \
-		echo "VIDEOSERVER_STREAMNAME=${VIDEOSERVER_STREAMNAME}" >> /tmp/$$.env 	 	
+		echo "VIDEOSERVER_STREAMNAME=${VIDEOSERVER_STREAMNAME}" >> /tmp/$$.env \	
+		echo "PLATFORM=${PLATFORM}" >> /tmp/$$.env 	 	
 		;;	
 	*)		
 		;;
