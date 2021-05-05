@@ -1,10 +1,8 @@
 #!/bin/bash
-
+# SERIAL is passed in as an env variable
 SUDO=$(test ${EUID} -ne 0 && which sudo)
-SERIAL=$(${SUDO} cat /proc/cpuinfo | grep Serial | head -1 | cut -f2 -d':' | xargs)
 SYSCFG=/etc/systemd
 UDEV_RULESD=/etc/udev/rules.d
-
 CONF=$1
 shift
 DEFAULTS=false
@@ -76,10 +74,11 @@ case "$(basename $CONF)" in
 		VIDEOSERVER_HOST=$(value_of VIDEOSERVER_HOST video.horizon31.com)
 		VIDEOSERVER_PORT=$(value_of VIDEOSERVER_PORT 1935)
 		VIDEOSERVER_ORG=$(value_of VIDEOSERVER_ORG H31)
+		VIDEOSERVER_STREAMNAME=$(value_of VIDEOSERVER_STREAMNAME ${SERIAL})
 		
 		if ! $DEFAULTS ; then		    			
-	
-			echo -e "Please provision this device...\nThe video service will generate 4 streams and requires a camera with an H.264 endpoint and a XRAW endpoint.\n\n"
+			echo "Video Provision for Serial Number ${SERIAL}"
+			echo -e "Please answer the questions below to provision this device...\nThe video service will generate 4 streams and requires a camera with an H.264 endpoint and a XRAW endpoint.\n\n"
 			# show the user the devices which support the RAW format				
 			
 			echo -e "Scanning /dev/video* for RAW sources...\n"
@@ -125,6 +124,7 @@ case "$(basename $CONF)" in
 			VIDEOSERVER_HOST=$(interactive "$VIDEOSERVER_HOST" "VIDEOSERVER_HOST, IPv4 for the Horizon31 video server")
 			VIDEOSERVER_PORT=$(interactive "$VIDEOSERVER_PORT" "VIDEOSERVER_PORT, Port for the Horizon31 video server")
 			VIDEOSERVER_ORG=$(interactive "$VIDEOSERVER_ORG" "VIDEOSERVER_ORG, Organizational id for this device (used for organizing video on the server)")
+			VIDEOSERVER_STREAMNAME=$(interactive "$VIDEOSERVER_STREAMNAME" "VIDEOSERVER_STREAMNAME, Stream name for this device, typically the device serial number")
 									
 		fi	
 
@@ -177,7 +177,8 @@ case "$(basename $CONF)" in
 		echo "ATAK_IFACE=${ATAK_IFACE}" >> /tmp/$$.env && \
 		echo "VIDEOSERVER_HOST=${VIDEOSERVER_HOST}" >> /tmp/$$.env && \
 		echo "VIDEOSERVER_PORT=${VIDEOSERVER_PORT}" >> /tmp/$$.env && \
-		echo "VIDEOSERVER_ORG=${VIDEOSERVER_ORG}" >> /tmp/$$.env 	
+		echo "VIDEOSERVER_ORG=${VIDEOSERVER_ORG}" >> /tmp/$$.env && \
+		echo "VIDEOSERVER_STREAMNAME=${VIDEOSERVER_STREAMNAME}" >> /tmp/$$.env 	 	
 		;;	
 	*)		
 		;;
@@ -198,7 +199,7 @@ rm /tmp/$$.rule
 echo -e "\nHere are the contents of ${CONF}"
 $SUDO cat $CONF
 echo -e "\nTo start the video streams now, run sudo systemctl start video, otherwist they will start on the next reboot."
-echo -e "\nYou can view the live video stream at https://gcs.horizon31.com/getvideo/?org=${VIDEOSERVER_ORG}&streamName=${SERIAL}\n"
+echo -e "\nYou can view the live video stream at https://gcs.horizon31.com/getvideo/?org=${VIDEOSERVER_ORG}&streamName=${VIDEOSERVER_STREAMNAME}\n"
 
 
 

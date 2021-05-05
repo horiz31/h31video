@@ -8,11 +8,11 @@
 # The RTMP and ATAK streams use the LOWQUALTIY params and the xraw source. Note that for the xraw, the scaling very picky, so it is fixed to 1280x720 but you can adjust the birtate, that is why only bitrate is exposed for LOWQUALTIY
 
 SUDO=$(test ${EUID} -ne 0 && which sudo)
-SERIAL=$(${SUDO} cat /proc/cpuinfo | grep Serial | head -1 | cut -f2 -d':' | xargs)
 LOCAL=/usr/local
 ELP_H264_UVC=${LOCAL}/src/ELP_H264_UVC
+PLATFORM=$(python3 serial_number.py | cut -c1-4)
 
-echo "Start Video Script ${SOURCE}"
+echo "Start Video Script for ${PLATFORM}"
 
 # if host is multicast, then append extra
 if [[ "$LOS_HOST" =~ ^224.* ]]; then
@@ -25,6 +25,12 @@ if [[ "$ATAK_HOST" =~ ^224.* ]]; then
     extra_atak="multicast-iface=${ATAK_IFACE} auto-multicast=true ttl=10"
 fi
 
+if [[ "$PLATFORM" == "RPIX" ]]; then
+    encoder_bitrate="target-bitrate"
+else
+    encoder_bitrate="bitrate"
+fi
+
 #Scale the bitrate from kbps to bps
 HIGHQUALITY_BITRATE=$(($HIGHQUALITY_BITRATE * 1000)) 
 LOWQUALITY_BITRATE=$(($LOWQUALITY_BITRATE * 1000)) 
@@ -35,8 +41,8 @@ if [ -d "${ELP_H264_UVC}" ] ; then
 fi   
 gst-launch-1.0 v4l2src device=/dev/camera1 io-mode=0 ! "video/x-raw,format=(string)YUY2,width=(int)640,height=(int)360,framerate=(fraction)15/1" ! \
 videorate max-rate=15 skip-to-first=true ! videoconvert ! videoscale method=bilinear name=scale ! "video/x-raw,format=(string)I420,width=(int)1280,height=(int)720,framerate=(fraction)15/1" ! \
-omxh264enc control-rate=1 target-bitrate=${LOWQUALITY_BITRATE} ! tee name=t t. ! queue max-size-buffers=0 max-size-bytes=0 max-size-time=134000000 min-threshold-buffers=1 leaky=upstream ! \
-h264parse ! flvmux streamable=true ! rtmpsink location=rtmp://${VIDEOSERVER_HOST}:${VIDEOSERVER_PORT}/live/${VIDEOSERVER_ORG}/${SERIAL} t. ! \
+omxh264enc control-rate=1 ${encoder_bitrate}=${LOWQUALITY_BITRATE} ! tee name=t t. ! queue max-size-buffers=0 max-size-bytes=0 max-size-time=134000000 min-threshold-buffers=1 leaky=upstream ! \
+h264parse ! flvmux streamable=true ! rtmpsink location=rtmp://${VIDEOSERVER_HOST}:${VIDEOSERVER_PORT}/live/${VIDEOSERVER_ORG}/${VIDEOSERVER_STREAMNAME} t. ! \
 queue max-size-buffers=0 max-size-bytes=0 max-size-time=134000000 min-threshold-buffers=1 leaky=upstream ! mpegtsmux ! rtpmp2tpay ! udpsink sync=false host=${ATAK_HOST} port=${ATAK_PORT} ${extra_atak} \
 v4l2src device=/dev/stream1 io-mode=mmap ! "video/x-h264,width=${HIGHQUALITY_WIDTH},height=${HIGHQUALITY_HEIGHT},framerate=(fraction)${HIGHQUALITY_FPS}/1" ! h264parse ! tee name=t1 t1. ! \
 queue max-size-buffers=0 max-size-bytes=0 max-size-time=134000000 min-threshold-buffers=1 leaky=upstream ! queue max-size-buffers=0 max-size-bytes=0 max-size-time=134000000 min-threshold-buffers=1 leaky=upstream ! \

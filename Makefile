@@ -5,11 +5,12 @@ SN := $(shell hostname)
 SUDO := $(shell test $${EUID} -ne 0 && echo "sudo")
 .EXPORT_ALL_VARIABLES:
 
+SERIAL ?= $(shell python3 serial_number.py)
 LOCAL=/usr/local
-LOCAL_SCRIPTS=start-video.sh
+LOCAL_SCRIPTS=start-video.sh serial_number.py
 CONFIG ?= /var/local
 LIBSYSTEMD=/lib/systemd/system
-PKGDEPS ?= gstreamer1.0-tools build-essential
+PKGDEPS ?= gstreamer1.0-tools v4l-utils build-essential
 SERVICES=video.service
 SYSCFG=/etc/systemd
 DRY_RUN=false
@@ -27,10 +28,8 @@ default:
 	@echo ""
 
 $(SYSCFG)/video.conf:
-	@echo ""
-	@echo "Please answer the questions below to provision the video settings:"
-	@echo ""
-	@./provision.sh $@
+	@echo ""	
+	@SERIAL=$(SERIAL) ./provision.sh $@
 
 clean:
 	@if [ -d src ] ; then cd src && make clean ; fi
@@ -54,7 +53,7 @@ install: dependencies
 	@$(MAKE) --no-print-directory enable
 
 provision:
-	$(MAKE) --no-print-directory -B $(SYSCFG)/video.conf
+	@$(MAKE) --no-print-directory -B $(SYSCFG)/video.conf
 	$(SUDO) systemctl restart video
 
 see:
