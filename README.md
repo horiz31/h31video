@@ -1,6 +1,6 @@
-# Simple Video Service for H31, PixC4-Pi
+# Simple Video Service for H31, PixC4-Pi and PixC4-Jetson
 
-This is a simple video streaming service built for the PixC4-Pi with plans to evolve into support for the PixcC4-Jetson. It supports a single usb camera input that has both xraw and h.264 endpoints (MIPI to be done). No video switching etc. is used.
+This is a simple video streaming service built for the PixC4-Pi and PixcC4-Jetson. It supports a single usb camera input that has both xraw and h.264 endpoints (MIPI to be done). No video switching etc. is used.
 
 It tries to create 4 different streams
 * LOS - A high quality stream, sent over the LOS network and derived from the H.264 endpoint
@@ -17,6 +17,7 @@ To set the bitrate of the ELP camera, the ELP_H264_UVC application is used (http
 ## Dependencies
 
 * `gstreamer1.0-tools` 
+* `v4l-utils`
 * `ELP_H264_UVC via https://github.com/uvdl/ELP_H264_UVC` 
 * `build-essential`
   
@@ -30,19 +31,19 @@ To perform an initial install, establish an internet connection and clone the re
 You will issue the following commands:
 ```
 cd $HOME
-git clone https://github.com/horiz31/video_simple_pi.git
+git clone https://github.com/horiz31/video_simple.git
 ```
 
 provide your credentials, then continue:
 ```
-make -C $HOME/video_simple_pi install
+make -C $HOME/video_simple install
 ```
 
 This will pull in the necessary dependencies, provision the system and start the video service  
 
 To make future changes in the provisioning:
 ```
-make -C $HOME/video_simple_pi provision
+make -C $HOME/video_simple provision
 ```
 
 This will enter into an interactive session to help you setup your video encoding settings, host endpoint etc.
@@ -85,5 +86,7 @@ These platforms are supported/tested:
 
  * Raspberry PI
    - [x] [Raspbian GNU/Linux 10 (buster)](https://www.raspberrypi.org/downloads/raspbian/)
+  * NVIDIA Jetson Nano
+   - [x] [NVIDIA L4T 32.5.1 (Jetpack 4.5.1)](https://developer.nvidia.com/embedded/jetpack)
 
 
