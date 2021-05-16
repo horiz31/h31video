@@ -49,12 +49,9 @@ if [ -d "${ELP_H264_UVC}" ] ; then
 	        ${SUDO} ${ELP_H264_UVC}/Linux_UVC_TestAP/H264_UVC_TestAP /dev/stream1 --xuset-br ${LOS_BITRATE}        	    
 fi   
 
-
-echo "${PLATFORM} gst-client pipeline_create server interpipesrc listen-to=xrawsrc is-live=true allow-renegotiation=true stream-sync=compensate-ts ! video/x-raw,format=(string)I420,framerate=(fraction)15/1,width=(int)1280,height=(int)720 ! omxh264enc ${encoder_bitrate}=${VIDEOSERVER_BITRATE} iframeinterval=60 ! h264parse ! flvmux streamable=true ! rtmpsink location=rtmp://${VIDEOSERVER_HOST}:${VIDEOSERVER_PORT}/live/${VIDEOSERVER_ORG}/${VIDEOSERVER_STREAMNAME}"
-
 # ensure previous pipelines are cancelled and cleared
 gstd -k
-gstd -q
+gstd -e
 
 gst-client pipeline_create h264src v4l2src device=/dev/stream1 io-mode=mmap ! "video/x-h264,width=1280,height=720,framerate=(fraction)15/1" ! h264parse ! rtph264pay config-interval=1 pt=96 ! udpsink sync=false host=${LOS_HOST} port=${LOS_PORT} ${extra_los}
 gst-client pipeline_create xrawsrc v4l2src device=/dev/camera1 io-mode=mmap ! "video/x-raw,format=(string)YUY2,width=(int)640,height=(int)360,framerate=(fraction)15/1" ! videoconvert name=input-format ! "video/x-raw,format=(string)I420,width=(int)640,height=(int)360,framerate=(fraction)15/1" ! videoscale method=bilinear name=input-scale ! "video/x-raw,format=(string)I420,width=(int)1280,height=(int)720,framerate=(fraction)15/1" ! interpipesink name=xrawsrc
