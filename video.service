@@ -1,13 +1,15 @@
 [Unit]
 Description=Video Service
-After=network.target
+After=systemd-remount-fs.service network.target nss-lookup.target
 RequiresMountsFor=/etc /usr
 
 [Service]
-Type=simple
+Type=forking
 ExecStart=/usr/local/bin/start-video.sh
 EnvironmentFile=/etc/systemd/video.conf
 RuntimeDirectory=video-stream
+RuntimeDirectoryMode=0755
+ExecStartPre=/bin/sleep 8
 StandardOutput=journal
 StandardError=journal
 Restart=always

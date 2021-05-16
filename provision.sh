@@ -58,22 +58,24 @@ case "$(basename $CONF)" in
 	video.conf)				
 		DEVICE_H264=$(value_of DEVICE_H264 /dev/video2)	
 		DEVICE_XRAW=$(value_of DEVICE_XRAW /dev/video0)	
-		HIGHQUALITY_WIDTH=$(value_of HIGHQUALITY_WIDTH 1280)
-        HIGHQUALITY_HEIGHT=$(value_of HIGHQUALITY_HEIGHT 720)
-        HIGHQUALITY_FPS=$(value_of HIGHQUALITY_FPS 15)
-        HIGHQUALITY_BITRATE=$(value_of HIGHQUALITY_BITRATE 2000)
-		LOWQUALITY_BITRATE=$(value_of LOWQUALITY_BITRATE 750)
 		LOS_HOST=$(value_of LOS_HOST 224.10.10.10)
 		LOS_PORT=$(value_of LOS_PORT 5600)
 		LOS_IFACE=$(value_of LOS_IFACE eth0)
+		LOS_WIDTH=$(value_of LOS_WIDTH 1280)
+        LOS_HEIGHT=$(value_of LOS_HEIGHT 720)
+        LOS_FPS=$(value_of LOS_FPS 15)
+        LOS_BITRATE=$(value_of LOS_BITRATE 2000)				
 		MAVPN_HOST=$(value_of MAVPN_HOST 224.11.10.10)
 		MAVPN_PORT=$(value_of MAVPN_PORT 5600)
 		MAVPN_IFACE=$(value_of MAVPN_IFACE edge0)
+		MAVPN_BITRATE=$(value_of MAVPN_BITRATE 1000)
 		ATAK_HOST=$(value_of ATAK_HOST 224.12.10.10)
 		ATAK_PORT=$(value_of ATAK_PORT 5600)
 		ATAK_IFACE=$(value_of ATAK_IFACE eth0)
+		ATAK_BITRATE=$(value_of ATAK_BITRATE 750)
 		VIDEOSERVER_HOST=$(value_of VIDEOSERVER_HOST video.horizon31.com)
 		VIDEOSERVER_PORT=$(value_of VIDEOSERVER_PORT 1935)
+		VIDEOSERVER_BITRATE=$(value_of VIDEOSERVER_BITRATE 750)
 		VIDEOSERVER_ORG=$(value_of VIDEOSERVER_ORG H31)
 		VIDEOSERVER_STREAMNAME=$(value_of VIDEOSERVER_STREAMNAME ${SERIAL})
 		
@@ -103,31 +105,39 @@ case "$(basename $CONF)" in
 				fi			
 			done	
 			DEVICE_H264=$(interactive "$DEVICE_H264" "Please select the desired H.264 endpoint, e.g. /dev/video0")			
-			echo -e "\n--- High Quality Settings will be used for the LOS and MAVPN streams ---"		
-			HIGHQUALITY_WIDTH=$(interactive "$HIGHQUALITY_WIDTH" "HIGHQUALTIY_WIDTH High Quality (LOS and MAVPN) video width in pixels")	
-			HIGHQUALITY_HEIGHT=$(interactive "$HIGHQUALITY_HEIGHT" "HIGHQUALITY_HEIGHT, High Quality (LOS and MAVPN) video height in pixels")	
-			HIGHQUALITY_FPS=$(interactive "$HIGHQUALITY_FPS" "HIGHQUALITY_FPS, High Quality (LOS and MAVPN) frames per second")	
-			HIGHQUALITY_BITRATE=$(interactive "$HIGHQUALITY_BITRATE" "HIGHQUALITY_BITRATE, High Quality (LOS and MAVPN) video bitrate in kbps")		
-			LOWQUALITY_BITRATE=$(interactive "$LOWQUALITY_BITRATE" "LOWQUALITY_BITRATE, Low Quality (Video Server and ATAK) video bitrate in kbps")	
-			echo -e "\n--- LOS Video Config ---"				
+			echo -e "\n--- Line of Sight Video Configuration ---"		
+			LOS_WIDTH=$(interactive "$LOS_WIDTH" "LOS_WIDTH LOS video width in pixels")	
+			LOS_HEIGHT=$(interactive "$LOS_HEIGHT" "LOS_HEIGHT, LOS video height in pixels")	
+			LOS_FPS=$(interactive "$LOS_FPS" "LOS_FPS, LOS video frames per second")	
+			LOS_BITRATE=$(interactive "$LOS_BITRATE" "LOS_BITRATE, LOS video bitrate in kbps")	
+			los_current_ip=$(/sbin/ip -o -4 addr list eth0 | awk '{print $4}' | cut -d/ -f1 2>/dev/null)
+			echo "INFO: The LOS (eth0) interface IP address is currently $los_current_ip"								
 			LOS_HOST=$(interactive "$LOS_HOST" "LOS_HOST, UDP IPv4 for where to send the LOS video")	
 			LOS_PORT=$(interactive "$LOS_PORT" "LOS_PORT, Port for the LOS video")	
 			LOS_IFACE=$(interactive "$LOS_IFACE" "LOS_IFACE, Multicast interface for the LOS video, if applicable")	
 			echo -e "\n--- MAVPN Video Config ---"
+			mavpn_current_ip=$(/sbin/ip -o -4 addr list edge0 2>/dev/null | awk '{print $4}' | cut -d/ -f1)
+			if [[ -z $mavpn_current_ip ]] ; then echo "Warning, no MAVPN interface detected!!!"
+			else echo "INFO: The MAVPN (edge0 ) interface IP address is currently $mavpn_current_ip"	
+			fi
 			MAVPN_HOST=$(interactive "$MAVPN_HOST" "MAVPN_HOST, UDP IPv4 for where to send the MAVPN video")	
 			MAVPN_PORT=$(interactive "$MAVPN_PORT" "MAVPN_PORT, Port for the MAVPN video")	
 			MAVPN_IFACE=$(interactive "$MAVPN_IFACE" "MAVPN_IFACE, Multicast interface for the MAVPN video, if applicable")	
+			MAVPN_BITRATE=$(interactive "$MAVPN_BITRATE" "MAVPN_BITRATE, MAVPN video bitrate in kbps")		
 			echo -e "\n--- ATAK Video Config ---"
-			ATAK_HOST=$(interactive "$ATAK_HOST" "ATAK_HOST, UDP IPv4 for where to send the ATAK video")	
+			ATAK_HOST=$(interactive "$ATAK_HOST" "ATAK_HOST, UDP IPv4 for where to send the ATAK video, type "none" if not using")	
 			ATAK_PORT=$(interactive "$ATAK_PORT" "ATAK_PORT, Port for the ATAK video")	
 			ATAK_IFACE=$(interactive "$ATAK_IFACE" "ATAK_IFACE, Multicast interface for the ATAK video, if applicable")	
+			ATAK_BITRATE=$(interactive "$ATAK_BITRATE" "ATAK_BITRATE, ATAK video bitrate in kbps")
 			echo -e "\n--- Video Distribution Server Config ---"
 			VIDEOSERVER_HOST=$(interactive "$VIDEOSERVER_HOST" "VIDEOSERVER_HOST, IPv4 for the Horizon31 video server, type "none" if not using")
 			VIDEOSERVER_PORT=$(interactive "$VIDEOSERVER_PORT" "VIDEOSERVER_PORT, Port for the Horizon31 video server")
+			VIDEOSERVER_BITRATE=$(interactive "$VIDEOSERVER_BITRATE" "VIDEOSERVER_BITRATE, Video server bitrate in kbps")
 			VIDEOSERVER_ORG=$(interactive "$VIDEOSERVER_ORG" "VIDEOSERVER_ORG, Organizational id for this device (used for organizing video on the server)")
 			VIDEOSERVER_STREAMNAME=$(interactive "$VIDEOSERVER_STREAMNAME" "VIDEOSERVER_STREAMNAME, Stream name for this device, typically the device serial number")
   
 			if [[ "$VIDEOSERVER_HOST" == "none" ]] ; then VIDEOSERVER_HOST="" ; fi
+			if [[ "$ATAK_HOST" == "none" ]] ; then ATAK_HOST="" ; fi
 
 									
 		fi	
@@ -165,24 +175,26 @@ case "$(basename $CONF)" in
 		echo "[Service]" > /tmp/$$.env && \
 		echo "DEVICE_H264=${DEVICE_H264}" >> /tmp/$$.env && \
 		echo "DEVICE_XRAW=${DEVICE_XRAW}" >> /tmp/$$.env && \
-		echo "HIGHQUALITY_WIDTH=${HIGHQUALITY_WIDTH}" >> /tmp/$$.env && \
-		echo "HIGHQUALITY_HEIGHT=${HIGHQUALITY_HEIGHT}" >> /tmp/$$.env && \
-		echo "HIGHQUALITY_FPS=${HIGHQUALITY_FPS}" >> /tmp/$$.env && \
-		echo "HIGHQUALITY_BITRATE=${HIGHQUALITY_BITRATE}" >> /tmp/$$.env && \
-		echo "LOWQUALITY_BITRATE=${LOWQUALITY_BITRATE}" >> /tmp/$$.env && \
+		echo "LOS_WIDTH=${LOS_WIDTH}" >> /tmp/$$.env && \
+		echo "LOS_HEIGHT=${LOS_HEIGHT}" >> /tmp/$$.env && \
+		echo "LOS_FPS=${LOS_FPS}" >> /tmp/$$.env && \
+		echo "LOS_BITRATE=${LOS_BITRATE}" >> /tmp/$$.env && \
 		echo "LOS_HOST=${LOS_HOST}" >> /tmp/$$.env && \
 		echo "LOS_PORT=${LOS_PORT}" >> /tmp/$$.env && \
 		echo "LOS_IFACE=${LOS_IFACE}" >> /tmp/$$.env && \
 		echo "MAVPN_HOST=${MAVPN_HOST}" >> /tmp/$$.env && \
 		echo "MAVPN_PORT=${MAVPN_PORT}" >> /tmp/$$.env && \
 		echo "MAVPN_IFACE=${MAVPN_IFACE}" >> /tmp/$$.env && \
+		echo "MAVPN_BITRATE=${MAVPN_BITRATE}" >> /tmp/$$.env && \
 		echo "ATAK_HOST=${ATAK_HOST}" >> /tmp/$$.env && \
 		echo "ATAK_PORT=${ATAK_PORT}" >> /tmp/$$.env && \
 		echo "ATAK_IFACE=${ATAK_IFACE}" >> /tmp/$$.env && \
+		echo "ATAK_BITRATE=${ATAK_BITRATE}" >> /tmp/$$.env && \
 		echo "VIDEOSERVER_HOST=${VIDEOSERVER_HOST}" >> /tmp/$$.env && \
 		echo "VIDEOSERVER_PORT=${VIDEOSERVER_PORT}" >> /tmp/$$.env && \
+		echo "VIDEOSERVER_BITRATE=${VIDEOSERVER_BITRATE}" >> /tmp/$$.env && \
 		echo "VIDEOSERVER_ORG=${VIDEOSERVER_ORG}" >> /tmp/$$.env && \
-		echo "VIDEOSERVER_STREAMNAME=${VIDEOSERVER_STREAMNAME}" >> /tmp/$$.env \	
+		echo "VIDEOSERVER_STREAMNAME=${VIDEOSERVER_STREAMNAME}" >> /tmp/$$.env && \
 		echo "PLATFORM=${PLATFORM}" >> /tmp/$$.env 	 	
 		;;	
 	*)		
@@ -203,7 +215,7 @@ rm /tmp/$$.env
 rm /tmp/$$.rule
 echo -e "\nHere are the contents of ${CONF}"
 $SUDO cat $CONF
-echo -e "\nTo start the video streams now, run sudo systemctl start video, otherwist they will start on the next reboot."
+echo -e "\nTo start the video streams now by 'sudo systemctl start video', otherwise they will start on the next reboot."
 echo -e "\nYou can view the live video stream at https://gcs.horizon31.com/getvideo/?org=${VIDEOSERVER_ORG}&streamName=${VIDEOSERVER_STREAMNAME}\n"
 
 

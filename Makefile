@@ -10,10 +10,11 @@ LOCAL=/usr/local
 LOCAL_SCRIPTS=start-video.sh serial_number.py
 CONFIG ?= /var/local
 LIBSYSTEMD=/lib/systemd/system
-PKGDEPS ?= gstreamer1.0-tools v4l-utils build-essential
+PKGDEPS ?= v4l-utils build-essential
 SERVICES=video.service
 SYSCFG=/etc/systemd
 DRY_RUN=false
+PLATFORM ?= $(shell python serial_number.py | cut -c1-4)
 
 .PHONY = clean dependencies enable install provision see uninstall 
 
@@ -49,6 +50,8 @@ enable:
 install: dependencies
 	@for s in $(LOCAL_SCRIPTS) ; do $(SUDO) install -Dm755 $${s} $(LOCAL)/bin/$${s} ; done
 	@./ensure-elp-driver.sh		
+	@PLATFORM=$(PLATFORM) ./ensure-gst.sh $(DRY_RUN)
+	@PLATFORM=$(PLATFORM) ./ensure-gstd.sh $(DRY_RUN)	
 	@$(MAKE) --no-print-directory -B $(SYSCFG)/video.conf
 	@$(MAKE) --no-print-directory enable
 
