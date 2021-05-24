@@ -65,11 +65,6 @@ To view output logs while it is running
 sudo journalctl -fu video
 ```
 
-## Video Server Notes
-
-The serial number used for now is the Rpi cpu serial number, obtained by `cat /proc/cpuinfo | grep Serial | head -1 | cut -f2 -d':' | xargs`. I need to look at how Bogdan was getting serial numbers as there is likely a python script for this already in camera-streamer. Ultimately will have to make sure this is unified with MAVNet.  
-
-The Org is pulled it from the video.conf config file.
 
 ## Files
 
@@ -78,7 +73,10 @@ The Org is pulled it from the video.conf config file.
  * `provision.sh` - script to support creating and changing the config file
  * `video.service` - service file
  * `ensure-elp-driver.sh` - script ran during install to clone the ELP driver and compile it
+ * `ensure-gstd.sh` - script ran during install to clone and install GSTD
+ * `ensure-gst.sh` - script ran during install to clone and install Gstreamer
  * `start-video.sh` - script ran by the service to start the LOS video streaming
+ * `serial_number.py` - python app to get serial number across various platforms
  
 
 ## Supported Platforms
