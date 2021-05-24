@@ -51,8 +51,9 @@ if [ -d "${ELP_H264_UVC}" ] ; then
 fi   
 
 # ensure previous pipelines are cancelled and cleared
-gstd -k
-gstd -e
+gstd -f /var/run -k
+# 
+gstd -f /var/run
 
 gst-client pipeline_create h264src v4l2src device=/dev/stream1 ! "video/x-h264,width=1280,height=720,framerate=(fraction)15/1" ! h264parse ! rtph264pay config-interval=1 pt=96 ! udpsink sync=false host=${LOS_HOST} port=${LOS_PORT} ${extra_los}
 gst-client pipeline_create xrawsrc v4l2src device=/dev/camera1 io-mode=mmap ! "video/x-raw,format=(string)YUY2,width=(int)640,height=(int)360,framerate=(fraction)15/1" ! videoconvert name=input-format ! "video/x-raw,format=(string)I420,width=(int)640,height=(int)360,framerate=(fraction)15/1" ! videoscale method=bilinear name=input-scale ! "video/x-raw,format=(string)I420,width=(int)1280,height=(int)720,framerate=(fraction)15/1" ! interpipesink name=xrawsrc
