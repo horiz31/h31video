@@ -16,7 +16,7 @@ To set the bitrate of the ELP camera, the ELP_H264_UVC application is used (http
 
 ## Dependencies
 
-* `gstreamer1.0-tools` 
+* `Gstreamer, set up via ensure-gst.sh for specific platforms` 
 * `v4l-utils`
 * `ELP_H264_UVC via https://github.com/uvdl/ELP_H264_UVC` 
 * `build-essential`
