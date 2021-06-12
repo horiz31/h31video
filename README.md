@@ -1,4 +1,4 @@
-# Simple Video Service for H31, PixC4-Pi and PixC4-Jetson
+# H31 Video Service for PixC4-Pi and PixC4-Jetson
 
 This is a simple video streaming service built for the PixC4-Pi and PixcC4-Jetson. It supports a single usb camera input that has both xraw and h.264 endpoints (MIPI to be done). No video switching etc. is used.
 
@@ -31,19 +31,19 @@ To perform an initial install, establish an internet connection and clone the re
 You will issue the following commands:
 ```
 cd $HOME
-git clone https://github.com/horiz31/video_simple.git
+git clone https://github.com/horiz31/h31video.git
 ```
 
 provide your credentials, then continue:
 ```
-make -C $HOME/video_simple install
+make -C $HOME/h31video install
 ```
 
 This will pull in the necessary dependencies, provision the system and start the video service  
 
 To make future changes in the provisioning:
 ```
-make -C $HOME/video_simple provision
+make -C $HOME/h31video provision
 ```
 
 This will enter into an interactive session to help you setup your video encoding settings, host endpoint etc.
