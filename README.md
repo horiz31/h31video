@@ -1,6 +1,6 @@
 # H31 Video Service for PixC4-Pi and PixC4-Jetson
 
-This is a simple video streaming service built for the PixC4-Pi and PixcC4-Jetson. It supports a single usb camera input that has both xraw and h.264 endpoints (MIPI to be done). No video switching etc. is used.
+This is a simple video streaming service built for the PixC4-Pi and PixcC4-Jetson. It supports a single usb camera input that has both xraw and h.264 endpoints (MIPI to be done). No video switching etc. is used. For a more complicated scenario, this can be expanded to your needs using the tools present. It may be of value to look at the open source camera-streamer implementation here: https://github.com/uvdl/camera-streamer
 
 It tries to create 4 different streams
 * LOS - A high quality stream, sent over the LOS network and derived from the H.264 endpoint
