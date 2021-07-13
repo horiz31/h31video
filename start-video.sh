@@ -52,14 +52,13 @@ fi
 
 # ensure previous pipelines are cancelled and cleared
 gstd -f /var/run -k
-# 
 gstd -f /var/run
 
 gst-client pipeline_create h264src v4l2src device=/dev/stream1 ! "video/x-h264,width=1280,height=720,framerate=(fraction)15/1" ! h264parse ! rtph264pay config-interval=1 pt=96 ! udpsink sync=false host=${LOS_HOST} port=${LOS_PORT} ${extra_los}
 gst-client pipeline_create xrawsrc v4l2src device=/dev/camera1 io-mode=mmap ! "video/x-raw,format=(string)YUY2,width=(int)640,height=(int)360,framerate=(fraction)15/1" ! videoconvert name=input-format ! "video/x-raw,format=(string)I420,width=(int)640,height=(int)360,framerate=(fraction)15/1" ! videoscale method=bilinear name=input-scale ! "video/x-raw,format=(string)I420,width=(int)1280,height=(int)720,framerate=(fraction)15/1" ! interpipesink name=xrawsrc
-gst-client pipeline_create edge interpipesrc listen-to=xrawsrc is-live=true allow-renegotiation=true stream-sync=compensate-ts ! "video/x-raw,format=(string)I420,framerate=(fraction)15/1,width=(int)1280,height=(int)720" ! omxh264enc ${encoder_bitrate}=${MAVPN_BITRATE} iframeinterval=60 ! h264parse ! rtph264pay config-interval=10 pt=96 ! udpsink sync=false host=${MAVPN_HOST} port=${MAVPN_PORT} ${extra_mavpn}
-gst-client pipeline_create server interpipesrc listen-to=xrawsrc is-live=true allow-renegotiation=true stream-sync=compensate-ts ! "video/x-raw,format=(string)I420,framerate=(fraction)15/1,width=(int)1280,height=(int)720" ! omxh264enc ${encoder_bitrate}=${VIDEOSERVER_BITRATE} iframeinterval=60 ! h264parse ! flvmux streamable=true ! rtmpsink location=rtmp://${VIDEOSERVER_HOST}:${VIDEOSERVER_PORT}/live/${VIDEOSERVER_ORG}/${VIDEOSERVER_STREAMNAME}
-gst-client pipeline_create atak interpipesrc listen-to=xrawsrc is-live=true allow-renegotiation=true stream-sync=compensate-ts ! "video/x-raw,format=(string)I420,framerate=(fraction)15/1,width=(int)1280,height=(int)720" ! omxh264enc ${encoder_bitrate}=${ATAK_BITRATE} iframeinterval=60 ! h264parse ! mpegtsmux ! rtpmp2tpay ! udpsink sync=false host=${ATAK_HOST} port=${ATAK_PORT} ${extra_atak}
+gst-client pipeline_create edge interpipesrc listen-to=xrawsrc block=true is-live=true allow-renegotiation=true stream-sync=compensate-ts ! "video/x-raw,format=(string)I420,framerate=(fraction)15/1,width=(int)1280,height=(int)720" ! omxh264enc ${encoder_bitrate}=${MAVPN_BITRATE} iframeinterval=60 ! h264parse ! rtph264pay config-interval=10 pt=96 mtu=1200 ! udpsink sync=false host=${MAVPN_HOST} port=${MAVPN_PORT} ${extra_mavpn}
+gst-client pipeline_create server interpipesrc listen-to=xrawsrc block=true is-live=true allow-renegotiation=true stream-sync=compensate-ts ! "video/x-raw,format=(string)I420,framerate=(fraction)15/1,width=(int)1280,height=(int)720" ! omxh264enc ${encoder_bitrate}=${VIDEOSERVER_BITRATE} iframeinterval=60 ! h264parse ! flvmux streamable=true ! rtmpsink location=rtmp://${VIDEOSERVER_HOST}:${VIDEOSERVER_PORT}/live/${VIDEOSERVER_ORG}/${VIDEOSERVER_STREAMNAME}
+gst-client pipeline_create atak interpipesrc listen-to=xrawsrc block=true is-live=true allow-renegotiation=true stream-sync=compensate-ts ! "video/x-raw,format=(string)I420,framerate=(fraction)15/1,width=(int)1280,height=(int)720" ! omxh264enc ${encoder_bitrate}=${ATAK_BITRATE} iframeinterval=60 ! h264parse ! mpegtsmux ! rtpmp2tpay ! udpsink host=${ATAK_HOST} port=${ATAK_PORT} ${extra_atak}
 
 # start source pipelines streaming
 gst-client pipeline_play h264src
@@ -83,16 +82,4 @@ if [ -n "${ATAK_HOST}" ] ; then
     gst-client pipeline_play atak
 fi
 
-#echo "Running pipeline 1 xraw <ATAK|VIDEO SERVER>" && gst-launch-1.0 v4l2src device=/dev/camera1 io-mode=0 ! "video/x-raw,format=(string)YUY2,width=(int)640,height=(int)360,framerate=(fraction)15/1" ! \
-#videorate max-rate=15 skip-to-first=true ! videoconvert ! videoscale method=bilinear name=scale ! "video/x-raw,format=(string)I420,width=(int)1280,height=(int)720,framerate=(fraction)15/1" ! \
-#omxh264enc control-rate=1 ${encoder_bitrate}=${LOWQUALITY_BITRATE} ! tee name=t ${extra_videoserver} t. ! \
-#queue max-size-buffers=0 max-size-bytes=0 max-size-time=134000000 min-threshold-buffers=1 leaky=upstream ! mpegtsmux ! rtpmp2tpay ! udpsink sync=false host=${ATAK_HOST} port=${ATAK_PORT} ${extra_atak} &
-
-#echo "Running pipeline 2 h.264 <LOS|MAVPN>" && gst-launch-1.0 v4l2src device=/dev/stream1 io-mode=mmap ! "video/x-h264,width=${HIGHQUALITY_WIDTH},height=${HIGHQUALITY_HEIGHT},framerate=(fraction)${HIGHQUALITY_FPS}/1" ! h264parse ! tee name=t1 t1. ! \
-#queue max-size-buffers=0 max-size-bytes=0 max-size-time=134000000 min-threshold-buffers=1 leaky=upstream ! queue max-size-buffers=0 max-size-bytes=0 max-size-time=134000000 min-threshold-buffers=1 leaky=upstream ! \
-#rtph264pay config-interval=1 pt=96 ! udpsink sync=false host=${LOS_HOST} port=${LOS_PORT} ${extra_los} t1. ! queue max-size-buffers=0 max-size-bytes=0 max-size-time=134000000 min-threshold-buffers=1 leaky=upstream ! \
-#rtph264pay config-interval=1 pt=96 ! udpsink sync=false host=${MAVPN_HOST} port=${MAVPN_PORT} ${extra_mavpn}
-
-# Todo later, handle MIPI  raspivid --nopreview -fps ${FPS} -h ${HEIGHT} -w ${WIDTH} -vf -hf -n -t 0 -b ${BITRATE} -o - | gst-launch-1.0 -v fdsrc ! h264parse ! rtph264pay config-interval=1 pt=96 ! udpsink host=${HOST} port=${PORT} ${extra}        
-        
 
