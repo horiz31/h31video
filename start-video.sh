@@ -64,12 +64,9 @@ gst-client pipeline_create atak interpipesrc listen-to=xrawsrc block=true is-liv
 gst-client pipeline_play h264src
 gst-client pipeline_play xrawsrc
 
-if ifup edge0 ; then
-    gst-client pipeline_play edge
-else
-    echo "Edge0 interface not up, so not starting the edge pipeline"
-fi
+#note the edge pipeline will be started by the edge service (if it is run), otherwise it will never play
 
+#check if we can ping the video server at this time, if not don't start that stream yet. h31proxy will evaluate and start this stream later if the connection comes online
 if [ -n "${VIDEOSERVER_HOST}" ] ; then   
     if ping -q -c 1 -W 1 ${VIDEOSERVER_HOST} >/dev/null; then    
         echo "Starting server pipeline"  
@@ -78,6 +75,7 @@ if [ -n "${VIDEOSERVER_HOST}" ] ; then
         echo "Not able to ping the video server, not going to try RTMP"
     fi
 fi
+#start the atak stream if an ATAK host is defined
 if [ -n "${ATAK_HOST}" ] ; then
     gst-client pipeline_play atak
 fi
