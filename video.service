@@ -1,6 +1,7 @@
 [Unit]
 Description=Video Service
-After=systemd-remount-fs.service network.target nss-lookup.target
+Wants=network-online.target
+After=systemd-remount-fs.service network-online.target nss-lookup.target
 RequiresMountsFor=/etc /usr
 
 [Service]
