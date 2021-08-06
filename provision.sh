@@ -78,6 +78,8 @@ case "$(basename $CONF)" in
 		VIDEOSERVER_BITRATE=$(value_of VIDEOSERVER_BITRATE 750)
 		VIDEOSERVER_ORG=$(value_of VIDEOSERVER_ORG H31)
 		VIDEOSERVER_STREAMNAME=$(value_of VIDEOSERVER_STREAMNAME ${SERIAL})
+		AUDIO_PORT=$(value_of AUDIO_PORT 5601)				
+		AUDIO_BITRATE=$(value_of AUDIO_BITRATE 128)
 		
 		if ! $DEFAULTS ; then		    			
 			echo "Video Provision for Serial Number ${SERIAL}"
@@ -135,7 +137,8 @@ case "$(basename $CONF)" in
 			VIDEOSERVER_BITRATE=$(interactive "$VIDEOSERVER_BITRATE" "VIDEOSERVER_BITRATE, Video server bitrate in kbps")
 			VIDEOSERVER_ORG=$(interactive "$VIDEOSERVER_ORG" "VIDEOSERVER_ORG, Organizational id for this device (used for organizing video on the server)")
 			VIDEOSERVER_STREAMNAME=$(interactive "$VIDEOSERVER_STREAMNAME" "VIDEOSERVER_STREAMNAME, Stream name for this device, typically the device serial number")
-  
+  			AUDIO_PORT=$(interactive "$AUDIO_PORT" "AUDIO_PORT, Port for the audio")
+			AUDIO_BITRATE=$(interactive "$AUDIO_BITRATE" "AUDIO_BITRATE, Audio bitrate in kbps")
 			if [[ "$VIDEOSERVER_HOST" == "none" ]] ; then VIDEOSERVER_HOST="" ; fi
 			if [[ "$ATAK_HOST" == "none" ]] ; then ATAK_HOST="" ; fi
 
@@ -195,6 +198,8 @@ case "$(basename $CONF)" in
 		echo "VIDEOSERVER_BITRATE=${VIDEOSERVER_BITRATE}" >> /tmp/$$.env && \
 		echo "VIDEOSERVER_ORG=${VIDEOSERVER_ORG}" >> /tmp/$$.env && \
 		echo "VIDEOSERVER_STREAMNAME=${VIDEOSERVER_STREAMNAME}" >> /tmp/$$.env && \
+		echo "AUDIO_PORT=${AUDIO_PORT}" >> /tmp/$$.env && \
+		echo "AUDIO_BITRATE=${AUDIO_BITRATE}" >> /tmp/$$.env && \
 		echo "PLATFORM=${PLATFORM}" >> /tmp/$$.env 	 	
 		;;	
 	*)		
