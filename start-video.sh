@@ -65,8 +65,8 @@ gst-client pipeline_create atak interpipesrc listen-to=h264src ! nvv4l2decoder d
 # audio pipelines
 # to do, add audio port to config file and pull in
 gst-client pipeline_create mic alsasrc device="hw:2,0" ! "audio/x-raw,format=(string)S16LE,rate=(int)44100,channels=(int)1" ! interpipesink name=mic
-gst-client pipeline_create audio_los interpipesrc listen-to=mic block=true is-live=true allow-renegotiation=true stream-sync=compensate-ts ! voaacenc bitrate=${AUDIO_BITRATE} ! aacparse ! rtpmp4apay pt=96 ! udpsink name=output host=${LOS_HOST} port=5601 ${extra_los}
-gst-client pipeline_create audio_edge interpipesrc listen-to=mic block=true is-live=true allow-renegotiation=true stream-sync=compensate-ts ! voaacenc bitrate=${AUDIO_BITRATE} ! aacparse ! rtpmp4apay pt=96 ! udpsink name=output host=${MAVPN_HOST} port=5601 ${extra_los}
+gst-client pipeline_create audio_los interpipesrc listen-to=mic block=true is-live=true allow-renegotiation=true stream-sync=compensate-ts ! voaacenc bitrate=${AUDIO_BITRATE} ! aacparse ! rtpmp4apay pt=96 ! udpsink name=output host=${LOS_HOST} port=${AUDIO_PORT} ${extra_los}
+gst-client pipeline_create audio_edge interpipesrc listen-to=mic block=true is-live=true allow-renegotiation=true stream-sync=compensate-ts ! voaacenc bitrate=${AUDIO_BITRATE} ! aacparse ! rtpmp4apay pt=96 ! udpsink name=output host=${MAVPN_HOST} port=${AUDIO_PORT} ${extra_los}
 
 
 # start source pipelines streaming
