@@ -63,18 +63,16 @@ gst-client pipeline_create server interpipesrc listen-to=h264src block=true is-l
 gst-client pipeline_create atak interpipesrc listen-to=h264src ! nvv4l2decoder disable-dpb=true ! queue ! omxh264enc ${encoder_bitrate}=${ATAK_BITRATE} ! h264parse ! mpegtsmux ! rtpmp2tpay ! udpsink sync=false host=${ATAK_HOST} port=${ATAK_PORT} ${extra_atak}
 
 # audio pipelines
-# to do, add audio port to config file and pull in
 gst-client pipeline_create mic alsasrc device="hw:2,0" ! "audio/x-raw,format=(string)S16LE,rate=(int)44100,channels=(int)1" ! interpipesink name=mic
 gst-client pipeline_create audio_los interpipesrc listen-to=mic block=true is-live=true allow-renegotiation=true stream-sync=compensate-ts ! voaacenc bitrate=${AUDIO_BITRATE} ! aacparse ! rtpmp4apay pt=96 ! udpsink name=output host=${LOS_HOST} port=${AUDIO_PORT} ${extra_los}
 gst-client pipeline_create audio_edge interpipesrc listen-to=mic block=true is-live=true allow-renegotiation=true stream-sync=compensate-ts ! voaacenc bitrate=${AUDIO_BITRATE} ! aacparse ! rtpmp4apay pt=96 ! udpsink name=output host=${MAVPN_HOST} port=${AUDIO_PORT} ${extra_mavpn}
-
 
 # start source pipelines streaming
 gst-client pipeline_play h264src
 gst-client pipeline_play los
 gst-client pipeline_play mic
 
-#edge pipelines (edge and audio_edge) will play when/if n2n is started
+#edge pipelines (edge and audio_edge) will play when/if n2n is started and may be control by h31proxy to conserve bandwidth
 
 # server pipeline will be started if we can ping the video server, but ultimately this is unreliable. The connection will by monitored and managed by h31proxy 
  
