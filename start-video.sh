@@ -54,17 +54,25 @@ fi
 gstd -f /var/run -k
 gstd -f /var/run
 
+# video pipelines
 gst-client pipeline_create h264src v4l2src device=/dev/stream1 ! "video/x-h264,width=1280,height=720,framerate=(fraction)15/1" ! interpipesink name=h264src
 gst-client pipeline_create los interpipesrc listen-to=h264src block=true is-live=true allow-renegotiation=true stream-sync=compensate-ts ! h264parse ! rtph264pay config-interval=1 pt=96 ! udpsink sync=false host=${LOS_HOST} port=${LOS_PORT} ${extra_los}
 gst-client pipeline_create edge interpipesrc listen-to=h264src block=true is-live=true allow-renegotiation=true stream-sync=compensate-ts ! nvv4l2decoder disable-dpb=true ! queue ! nvv4l2h264enc control-rate=1 ${encoder_bitrate}=${MAVPN_BITRATE} preset-level=1 ! 'video/x-h264,width=1280,height=720,framerate=15/1' ! h264parse ! rtph264pay config-interval=1 pt=96 ! udpsink host=${MAVPN_HOST} port=${MAVPN_PORT} ${extra_mavpn}
 gst-client pipeline_create server interpipesrc listen-to=h264src block=true is-live=true allow-renegotiation=true stream-sync=compensate-ts ! nvv4l2decoder enable-max-performance=true disable-dpb=true ! queue ! nvv4l2h264enc control-rate=1 ${encoder_bitrate}=${VIDEOSERVER_BITRATE} preset-level=1 ! 'video/x-h264,width=1280,height=720,framerate=15/1' ! h264parse ! flvmux streamable=true ! rtmpsink location=rtmp://${VIDEOSERVER_HOST}:${VIDEOSERVER_PORT}/live/${VIDEOSERVER_ORG}/${VIDEOSERVER_STREAMNAME}
 gst-client pipeline_create atak interpipesrc listen-to=h264src ! nvv4l2decoder disable-dpb=true ! queue ! omxh264enc ${encoder_bitrate}=${ATAK_BITRATE} ! h264parse ! mpegtsmux ! rtpmp2tpay ! udpsink sync=false host=${ATAK_HOST} port=${ATAK_PORT} ${extra_atak}
 
+# audio pipelines
+# to do, add audio port to config file and pull in
+gst-client pipeline_create mic alsasrc device="hw:2,0" ! "audio/x-raw,format=(string)S16LE,rate=(int)44100,channels=(int)1" ! interpipesink name=mic
+gst-client pipeline_create audio_los interpipesrc listen-to=mic block=true is-live=true allow-renegotiation=true stream-sync=compensate-ts ! voaacenc bitrate=128000 ! aacparse ! rtpmp4apay pt=96 ! udpsink name=output host=${LOS_HOST} port=5601 ${extra_los}
+gst-client pipeline_create audio_edge interpipesrc listen-to=mic block=true is-live=true allow-renegotiation=true stream-sync=compensate-ts ! voaacenc bitrate=128000 ! aacparse ! rtpmp4apay pt=96 ! udpsink name=output host=${MAVPN_HOST} port=5601 ${extra_los}
+
+
 # start source pipelines streaming
 gst-client pipeline_play h264src
 gst-client pipeline_play los
 
-#edge pipeline will play when/if n2n is started
+#edge pipelines (edge and audio_edge) will play when/if n2n is started
 
 # server pipeline will be started if we can ping the video server, but ultimately this is unreliable. The connection will by monitored and managed by h31proxy 
  
@@ -81,6 +89,9 @@ fi
 if [ -n "${ATAK_HOST}" ] ; then
     gst-client pipeline_play atak
 fi
+
+gst-client pipeline_play audio_los
+
 
 
 
