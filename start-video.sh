@@ -72,6 +72,7 @@ gst-client pipeline_create audio_edge interpipesrc listen-to=mic block=true is-l
 # start source pipelines streaming
 gst-client pipeline_play h264src
 gst-client pipeline_play los
+gst-client pipeline_play mic
 
 #edge pipelines (edge and audio_edge) will play when/if n2n is started
 
