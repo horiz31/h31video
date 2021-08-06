@@ -64,13 +64,14 @@ gst-client pipeline_create atak interpipesrc listen-to=h264src ! nvv4l2decoder d
 
 # audio pipelines
 gst-client pipeline_create mic alsasrc device="hw:2,0" ! "audio/x-raw,format=(string)S16LE,rate=(int)44100,channels=(int)1" ! interpipesink name=mic
-gst-client pipeline_create audio_los interpipesrc listen-to=mic is-live=true allow-renegotiation=true ! voaacenc bitrate=${AUDIO_BITRATE} ! aacparse ! rtpmp4apay pt=96 ! udpsink name=output host=${LOS_HOST} port=${AUDIO_PORT} ${extra_los}
-gst-client pipeline_create audio_edge interpipesrc listen-to=mic is-live=true allow-renegotiation=true ! voaacenc bitrate=${AUDIO_BITRATE} ! aacparse ! rtpmp4apay pt=96 ! udpsink name=output host=${MAVPN_HOST} port=${AUDIO_PORT} ${extra_mavpn}
+gst-client pipeline_create audio_los interpipesrc listen-to=mic is-live=true block=true ! voaacenc bitrate=${AUDIO_BITRATE} ! aacparse ! rtpmp4apay pt=96 ! udpsink sync=false host=${LOS_HOST} port=${AUDIO_PORT} ${extra_los}
+gst-client pipeline_create audio_edge interpipesrc listen-to=mic is-live=true block=true ! voaacenc bitrate=${AUDIO_BITRATE} ! aacparse ! rtpmp4apay pt=96 ! udpsink sync=false host=${MAVPN_HOST} port=${AUDIO_PORT} ${extra_mavpn}
 
 # start source pipelines streaming
 gst-client pipeline_play h264src
 gst-client pipeline_play los
 gst-client pipeline_play mic
+
 
 #edge pipelines (edge and audio_edge) will play when/if n2n is started and may be control by h31proxy to conserve bandwidth
 
