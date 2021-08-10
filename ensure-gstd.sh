@@ -35,6 +35,7 @@ pkgdeps[libncursesw5-dev]=true
 pkgdeps[libsoup2.4-dev]=true
 pkgdeps[libreadline-dev]=true
 pkgdeps[libtool]=true
+pkgdeps[libjansson-dev]=true
 pkgdeps[pkg-config]=true
 pkgdeps[python3-pip]=true
 
