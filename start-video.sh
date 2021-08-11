@@ -21,13 +21,14 @@ function ifup {
 
 
 # if host is multicast, then append extra
-if [[ "$LOS_HOST" =~ ^224.* ]]; then
+if [[ "$LOS_HOST" =~ ^[2][2-3][4-9].* ]]; then
     extra_los="multicast-iface=${LOS_IFACE} auto-multicast=true ttl=10"
 fi
-if [[ "$MAVPN_HOST" =~ ^224.* ]]; then
+
+if [[ "$MAVPN_HOST" =~ ^[2][2-3][4-9].* ]]; then
     extra_mavpn="multicast-iface=${MAVPN_IFACE} auto-multicast=true ttl=10"
 fi
-if [[ "$ATAK_HOST" =~ ^224.* ]]; then
+if [[ "$ATAK_HOST" =~ ^[2][2-3][4-9].* ]]; then
     extra_atak="multicast-iface=${ATAK_IFACE} auto-multicast=true ttl=10"
 fi
 
