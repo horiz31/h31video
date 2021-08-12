@@ -67,11 +67,14 @@ gst-client pipeline_create audio_edge interpipesrc listen-to=mic is-live=true bl
 
 # start source pipelines streaming
 gst-client pipeline_play h264src
-gst-client pipeline_play los
+if [[ $LOS_BITRATE != "0" ]] ; then
+	gst-client pipeline_play los
+fi
 
 # server pipeline will be started if we can ping the video server, but ultimately this is unreliable. The connection will by monitored and managed by h31proxy 
+# server pipeline will only be started if bitrate is non-zero
  
-if [ -n "${VIDEOSERVER_HOST}" ] ; then   
+if [[ -n "${VIDEOSERVER_HOST}" &&  $VIDEOSERVER_BITRATE != "0" ]] ; then   
    if ping -q -c 1 -W 1 ${VIDEOSERVER_HOST} >/dev/null; then    
        echo "Starting server pipeline"  
        gst-client pipeline_play server  
@@ -87,14 +90,20 @@ fi
 
 # start the edge pipelines, which will stream video/audio over the edge network
 if ifup edge0 ; then
-	gst-client pipeline_play edge
-	gst-client pipeline_play audio_edge
+	if [[ $MAVPN_BITRATE != "0" ]] ; then
+		gst-client pipeline_play edge
+	fi
+	if [[ $AUDIO_BITRATE != "0" ]] ; then
+		gst-client pipeline_play audio_edge
+	fi
 else
 	echo "The edge0 interface is not up, so not starting the edge streams"
 fi
 
 # start the audio pipeline for the LOS network
-gst-client pipeline_play audio_los
+if [[ $AUDIO_BITRATE != "0" ]] ; then
+	gst-client pipeline_play audio_los
+fi
 # start the mic pipeline last
 gst-client pipeline_play mic
 
