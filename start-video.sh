@@ -61,14 +61,13 @@ gst-client pipeline_create server interpipesrc listen-to=h264src block=false is-
 gst-client pipeline_create atak interpipesrc listen-to=h264src ! nvv4l2decoder disable-dpb=true ! queue ! omxh264enc ${encoder_bitrate}=${ATAK_BITRATE} ! h264parse ! mpegtsmux ! rtpmp2tpay ! udpsink sync=false host=${ATAK_HOST} port=${ATAK_PORT} ${extra_atak}
 
 # audio pipelines
-#gst-client pipeline_create mic alsasrc device="hw:2,0" ! "audio/x-raw,format=(string)S16LE,rate=(int)44100,channels=(int)1" ! interpipesink name=mic
-#gst-client pipeline_create audio_los interpipesrc listen-to=mic is-live=true block=true ! voaacenc bitrate=${AUDIO_BITRATE} ! aacparse ! rtpmp4apay pt=96 ! udpsink sync=false host=${LOS_HOST} port=${AUDIO_PORT} ${extra_los}
-#gst-client pipeline_create audio_edge interpipesrc listen-to=mic is-live=true block=true ! voaacenc bitrate=${AUDIO_BITRATE} ! aacparse ! rtpmp4apay mtu=1200 pt=96 ! udpsink sync=false host=${MAVPN_HOST} port=${AUDIO_PORT} ${extra_mavpn}
+gst-client pipeline_create mic alsasrc device="hw:2,0" ! "audio/x-raw,format=(string)S16LE,rate=(int)44100,channels=(int)1" ! interpipesink name=mic
+gst-client pipeline_create audio_los interpipesrc listen-to=mic is-live=true block=true ! voaacenc bitrate=${AUDIO_BITRATE} ! aacparse ! rtpmp4apay pt=96 ! udpsink sync=false host=${LOS_HOST} port=${AUDIO_PORT} ${extra_los}
+gst-client pipeline_create audio_edge interpipesrc listen-to=mic is-live=true block=true ! voaacenc bitrate=${AUDIO_BITRATE} ! aacparse ! rtpmp4apay mtu=1200 pt=96 ! udpsink sync=false host=${MAVPN_HOST} port=${AUDIO_PORT} ${extra_mavpn}
 
 # start source pipelines streaming
 gst-client pipeline_play h264src
 gst-client pipeline_play los
-
 
 # server pipeline will be started if we can ping the video server, but ultimately this is unreliable. The connection will by monitored and managed by h31proxy 
  
@@ -89,30 +88,14 @@ fi
 # start the edge pipelines, which will stream video/audio over the edge network
 if ifup edge0 ; then
 	gst-client pipeline_play edge
-	#gst-client pipeline_play audio_edge
+	gst-client pipeline_play audio_edge
 else
 	echo "The edge0 interface is not up, so not starting the edge streams"
 fi
 
-
-result=$(gst-client pipeline_create mic alsasrc device="hw:2,0" ! "audio/x-raw,format=(string)S16LE,rate=(int)44100,channels=(int)1" ! interpipesink name=mic | head -n 2 | tail +2 | cut -fd -d":" | sed 's/.s//' | xargs)
-while [ $result -ne "0" ]
-do
-  echo "Mic pipeline failed to start";  #keep trying
-  sleep 2
-  result=$(gst-client pipeline_create mic alsasrc device="hw:2,0" ! "audio/x-raw,format=(string)S16LE,rate=(int)44100,channels=(int)1" ! interpipesink name=mic | head -n 2 | tail +2 | cut -fd -d":" | sed 's/.s//' | xa
-done
-
-gst-client pipeline_create audio_los interpipesrc listen-to=mic is-live=true block=true ! voaacenc bitrate=${AUDIO_BITRATE} ! aacparse ! rtpmp4apay pt=96 ! udpsink sync=false host=${LOS_HOST} port=${AUDIO_PORT} ${extra_los}
-gst-client pipeline_create audio_edge interpipesrc listen-to=mic is-live=true block=true ! voaacenc bitrate=${AUDIO_BITRATE} ! aacparse ! rtpmp4apay mtu=1200 pt=96 ! udpsink sync=false host=${MAVPN_HOST} port=${AUDIO_PORT} ${extra_mavpn}
-
-# now we can start audio pipelines
-if ifup edge0 ; then
-	gst-client pipeline_play audio_edge
-fi
 # start the audio pipeline for the LOS network
 gst-client pipeline_play audio_los
-# start the mic pipeline
+# start the mic pipeline last
 gst-client pipeline_play mic
 
 
