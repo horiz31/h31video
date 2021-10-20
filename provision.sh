@@ -1,7 +1,6 @@
 #!/bin/bash
 # SERIAL is passed in as an env variable
 SUDO=$(test ${EUID} -ne 0 && which sudo)
-SYSCFG=/etc/systemd
 UDEV_RULESD=/etc/udev/rules.d
 PLATFORM=$(python3 serial_number.py | cut -c1-4)
 CONF=$1
@@ -211,6 +210,7 @@ if $DRY_RUN ; then
 	set +x
 	echo $CONF && cat /tmp/$$.env && echo ""
 else
+	mkdir -p $CONF
 	$SUDO install -Dm644 /tmp/$$.env $CONF	
 	echo -e "Installing udev rules..."	
 	$SUDO install -Dm644 /tmp/$$.rule ${UDEV_RULESD}/83-webcam.rules
