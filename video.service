@@ -7,7 +7,7 @@ RequiresMountsFor=/etc /usr
 [Service]
 Type=forking
 ExecStart=/usr/local/bin/start-video.sh
-EnvironmentFile=/etc/systemd/video.conf
+EnvironmentFile=/usr/local/h31/conf/video.conf
 RuntimeDirectory=video-stream
 RuntimeDirectoryMode=0755
 ExecStartPre=/bin/sleep 4
