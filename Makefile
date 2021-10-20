@@ -48,7 +48,6 @@ enable:
 	@( for s in $(SERVICES) ; do $(SUDO) systemctl enable $${s%.*} ; done ; true )
 
 install: dependencies
-	@mkdir -p $(LOCAL)/bin
 	@for s in $(LOCAL_SCRIPTS) ; do $(SUDO) install -Dm755 $${s} $(LOCAL)/bin/$${s} ; done
 	@./ensure-elp-driver.sh		
 	@PLATFORM=$(PLATFORM) ./ensure-gst.sh $(DRY_RUN)
