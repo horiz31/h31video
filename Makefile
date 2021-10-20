@@ -12,7 +12,7 @@ CONFIG ?= /var/local
 LIBSYSTEMD=/lib/systemd/system
 PKGDEPS ?= v4l-utils build-essential
 SERVICES=video.service
-SYSCFG=/etc/systemd
+SYSCFG=/usr/local/h31/conf
 DRY_RUN=false
 PLATFORM ?= $(shell python serial_number.py | cut -c1-4)
 
