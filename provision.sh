@@ -210,7 +210,8 @@ if $DRY_RUN ; then
 	set +x
 	echo $CONF && cat /tmp/$$.env && echo ""
 else
-	mkdir -p $CONF
+	DIR="$(dirname $CONF)"
+	mkdir -p dirname $DIR
 	$SUDO install -Dm644 /tmp/$$.env $CONF	
 	echo -e "Installing udev rules..."	
 	$SUDO install -Dm644 /tmp/$$.rule ${UDEV_RULESD}/83-webcam.rules
