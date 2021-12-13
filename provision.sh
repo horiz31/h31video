@@ -75,6 +75,7 @@ case "$(basename $CONF)" in
 		
 		if ! $DEFAULTS ; then		    			
 			echo "Video Provision for Serial Number ${SERIAL}"
+			read -p "Please ensure that the target camera is installed and working before proceeding. Press enter to continue..."
 			echo -e "Please answer the questions below to provision this device...\nThe video service will generate 4 streams and requires a camera with an H.264 endpoint and a XRAW endpoint.\n\n"
 			# show the user the devices which support the RAW format				
 			
@@ -132,9 +133,7 @@ case "$(basename $CONF)" in
   			AUDIO_PORT=$(interactive "$AUDIO_PORT" "AUDIO_PORT, Port for the audio")
 			AUDIO_BITRATE=$(interactive "$AUDIO_BITRATE" "AUDIO_BITRATE, Audio bitrate in kbps")
 			if [[ "$VIDEOSERVER_HOST" == "none" ]] ; then VIDEOSERVER_HOST="" ; fi
-			if [[ "$ATAK_HOST" == "none" ]] ; then ATAK_HOST="" ; fi
-
-									
+			if [[ "$ATAK_HOST" == "none" ]] ; then ATAK_HOST="" ; fi									
 		fi	
 
 		#make udev rules
@@ -203,7 +202,8 @@ if $DRY_RUN ; then
 	set +x
 	echo $CONF && cat /tmp/$$.env && echo ""
 else
-	mkdir -p $CONF
+	DIR="$(dirname $CONF)"
+	mkdir -p $DIR
 	$SUDO install -Dm644 /tmp/$$.env $CONF	
 	echo -e "Installing udev rules..."	
 	$SUDO install -Dm644 /tmp/$$.rule ${UDEV_RULESD}/83-webcam.rules
