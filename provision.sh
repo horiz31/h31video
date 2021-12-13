@@ -46,24 +46,17 @@ function contains {
 	echo $result
 }
 
-#changes needed
-#add MCAST_IFACE
-#make SOURCE MIPI, MJPG or RAW
-#for red5 need  [HOST] [DEVICE] [HEIGHT] [WIDTH] [FPS] [BITRATE]
-
-
-
 case "$(basename $CONF)" in
 	video.conf)				
-		DEVICE_H264=$(value_of DEVICE_H264 /dev/video2)	
+		DEVICE_H264=$(value_of DEVICE_H264 /dev/video1)	
 		DEVICE_XRAW=$(value_of DEVICE_XRAW /dev/video0)	
 		LOS_HOST=$(value_of LOS_HOST 224.10.10.10)
 		LOS_PORT=$(value_of LOS_PORT 5600)
 		LOS_IFACE=$(value_of LOS_IFACE eth0)
 		LOS_WIDTH=$(value_of LOS_WIDTH 1280)
-        LOS_HEIGHT=$(value_of LOS_HEIGHT 720)
-        LOS_FPS=$(value_of LOS_FPS 30)
-        LOS_BITRATE=$(value_of LOS_BITRATE 3000)				
+        	LOS_HEIGHT=$(value_of LOS_HEIGHT 720)
+        	LOS_FPS=$(value_of LOS_FPS 30)
+        	LOS_BITRATE=$(value_of LOS_BITRATE 3000)				
 		MAVPN_HOST=$(value_of MAVPN_HOST 225.11.10.10)
 		MAVPN_PORT=$(value_of MAVPN_PORT 5600)
 		MAVPN_IFACE=$(value_of MAVPN_IFACE edge0)
@@ -82,6 +75,7 @@ case "$(basename $CONF)" in
 		
 		if ! $DEFAULTS ; then		    			
 			echo "Video Provision for Serial Number ${SERIAL}"
+			read -p "Please ensure that the target camera is installed and working before proceeding. Press enter to continue..."
 			echo -e "Please answer the questions below to provision this device...\nThe video service will generate 4 streams and requires a camera with an H.264 endpoint and a XRAW endpoint.\n\n"
 			# show the user the devices which support the RAW format				
 			
@@ -105,7 +99,7 @@ case "$(basename $CONF)" in
 					fi	
 				fi			
 			done	
-			DEVICE_H264=$(interactive "$DEVICE_H264" "Please select the desired H.264 endpoint, e.g. /dev/video0")			
+			DEVICE_H264=$(interactive "$DEVICE_H264" "Please select the desired H.264 endpoint, e.g. /dev/video1")			
 			echo -e "\n--- Line of Sight Video Configuration ---"		
 			LOS_WIDTH=$(interactive "$LOS_WIDTH" "LOS_WIDTH LOS video width in pixels")	
 			LOS_HEIGHT=$(interactive "$LOS_HEIGHT" "LOS_HEIGHT, LOS video height in pixels")	
@@ -139,9 +133,7 @@ case "$(basename $CONF)" in
   			AUDIO_PORT=$(interactive "$AUDIO_PORT" "AUDIO_PORT, Port for the audio")
 			AUDIO_BITRATE=$(interactive "$AUDIO_BITRATE" "AUDIO_BITRATE, Audio bitrate in kbps")
 			if [[ "$VIDEOSERVER_HOST" == "none" ]] ; then VIDEOSERVER_HOST="" ; fi
-			if [[ "$ATAK_HOST" == "none" ]] ; then ATAK_HOST="" ; fi
-
-									
+			if [[ "$ATAK_HOST" == "none" ]] ; then ATAK_HOST="" ; fi									
 		fi	
 
 		#make udev rules
@@ -211,7 +203,7 @@ if $DRY_RUN ; then
 	echo $CONF && cat /tmp/$$.env && echo ""
 else
 	DIR="$(dirname $CONF)"
-	mkdir -p dirname $DIR
+	mkdir -p $DIR
 	$SUDO install -Dm644 /tmp/$$.env $CONF	
 	echo -e "Installing udev rules..."	
 	$SUDO install -Dm644 /tmp/$$.rule ${UDEV_RULESD}/83-webcam.rules
