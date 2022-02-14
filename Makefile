@@ -36,6 +36,7 @@ clean:
 	@if [ -d src ] ; then cd src && make clean ; fi
 
 dependencies:	
+	$(SUDO) apt update
 	@if [ ! -z "$(PKGDEPS)" ] ; then $(SUDO) apt-get install -y $(PKGDEPS) ; fi
 
 disable:
@@ -48,7 +49,6 @@ enable:
 	@( for s in $(SERVICES) ; do $(SUDO) systemctl enable $${s%.*} ; done ; true )
 
 install: dependencies
-	$(SUDO) apt update
 	@for s in $(LOCAL_SCRIPTS) ; do $(SUDO) install -Dm755 $${s} $(LOCAL)/bin/$${s} ; done
 	@./ensure-elp-driver.sh		
 	@PLATFORM=$(PLATFORM) ./ensure-gst.sh $(DRY_RUN)
