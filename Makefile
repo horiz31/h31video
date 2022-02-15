@@ -36,7 +36,7 @@ clean:
 	@if [ -d src ] ; then cd src && make clean ; fi
 
 dependencies:	
-	$(SUDO) apt update
+	$(SUDO) apt-get update
 	@if [ ! -z "$(PKGDEPS)" ] ; then $(SUDO) apt-get install -y $(PKGDEPS) ; fi
 
 disable:
