@@ -7,7 +7,10 @@
 DRY_RUN=false
 SUDO=$(test ${EUID} -ne 0 && which sudo)
 if [ "$1" == "--dry-run" ] ; then DRY_RUN=true && SUDO="echo ${SUDO}" ; fi
-if ! GST_VERSION=$(gst-launch-1.0 --version | head -1 | cut -f3 -d' ') ; then
+
+if [ "${PLATFORM}" == "RPIX" ] ; then
+	$SUDO apt-get install -y gstreamer1.0-tools
+elif ! GST_VERSION=$(gst-launch-1.0 --version | head -1 | cut -f3 -d' ') ; then
 	# Core modules needed for gst-inspect-1.0
 	if [ -x $(which apt-get) ] && ! $DRY_RUN ; then
 		$SUDO apt-get install -y gstreamer1.0-tools gstreamer1.0-doc
